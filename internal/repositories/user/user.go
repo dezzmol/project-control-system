@@ -12,6 +12,7 @@ type UserRepo interface {
 	ExistsByEmail(email string) (bool, error)
 	ExistsByUsername(username string) (bool, error)
 	Create(user entities.User) error
+	GetByUsername(username string) (entities.User, error)
 }
 
 type Repository struct {
@@ -75,4 +76,16 @@ func (r *Repository) Create(user entities.User) error {
 	}
 	log.Println("[userRepo][create]: user created")
 	return nil
+}
+
+func (r *Repository) GetByUsername(username string) (entities.User, error) {
+	var user entities.User
+	err := r.storage.Goqu.From("users").
+		Select("id", "username", "email", "password").ScanStructs(&user)
+
+	if err != nil {
+		return entities.User{}, fmt.Errorf("[userRepo][GetByUsername]: failed to get user: %w", err)
+	}
+
+	return user, nil
 }
